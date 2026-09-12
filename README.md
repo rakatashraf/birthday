@@ -1,6 +1,6 @@
 # Birthday photo slideshow
 
-A static HTML, CSS, and JavaScript birthday slideshow with ten portraits, narration and original synthesized ambient music, and a looping celebration scene. No framework, package installation, environment variables, or server is required.
+A static HTML, CSS, and JavaScript birthday slideshow with ten portraits, narration, original synthesized ambient music, a looping celebration scene, and an animated canvas charm layer. No framework, package installation, environment variables, or server is required.
 
 ## Vercel deployment
 
@@ -32,4 +32,4 @@ The automated checks cover all asset references, the three Vercel output roots, 
 
 The image sits above an animated decorative layer of hearts, ribbons, balloons, cakes, gifts, and sparkles. Only the unused space around the opaque photo reveals the decorations. Captions remain in a separate row, and reduced-motion preferences disable the floating animation.
 
-The music master gain is 0.38, increased from 0.16 (about +7.5 dB). Narration uses normal pitch and near-normal speed, preferring installed natural/enhanced or online English voices when available. Browser speech quality still varies by device. A genuinely human recording or generated neural voiceover must replace browser synthesis for consistent natural narration; voice cloning has not been configured.
+The music master gain is 0.38, increased from 0.16 (about +7.5 dB). The portrait margins use a canvas animation with floating hearts, sparkles, balloons, gifts, cakes, and symbols; the charms twinkle, rotate, drift upward, and respond gently to pointer movement while remaining behind the full photo. Narration uses normal pitch and near-normal speed, preferring installed natural/enhanced or online English voices when available. Browser speech quality still varies by device. A genuinely human recording or generated neural voiceover must replace browser synthesis for consistent natural narration; voice cloning has not been configured.

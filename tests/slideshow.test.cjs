@@ -111,6 +111,15 @@ test('the legacy nested entry is synchronized', () => {
   assert.equal(html, fs.readFileSync(path.join(root, 'photo-collage/photo-collage/index.html'), 'utf8'));
 });
 
+test('birthday charms are animated and layered behind the full photo', () => {
+  assert.match(html, /<canvas id="birthday-charms"/);
+  assert.match(html, /requestAnimationFrame\(drawCharms\)/);
+  assert.match(html, /pointermove/);
+  assert.match(html, /\.birthday-charm\s*\{\s*display:\s*none;/);
+  assert.match(html, /\.birthday-charms[\s\S]*?z-index:\s*0/);
+  assert.match(html, /\.portrait-stage > img\s*\{\s*position:\s*relative;\s*z-index:\s*1;/);
+});
+
 test('slideshow completes without audio APIs', () => {
   const show = runShow();
   show.advance(180000);
