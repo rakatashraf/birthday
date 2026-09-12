@@ -633,6 +633,51 @@
     }
     .collage-wall img:nth-child(n) { transform: none; }
 
+
+    .portrait-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+    .portrait-stage > img { position: relative; z-index: 1; }
+    .birthday-atmosphere {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 7% 22%, rgba(239, 137, 175, .24), transparent 36%),
+        radial-gradient(ellipse at 94% 75%, rgba(255, 210, 123, .18), transparent 38%),
+        linear-gradient(135deg, #321426, #211725 52%, #352022);
+    }
+    .birthday-charm {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      color: var(--charm-color, #f8c7da);
+      font-family: Georgia, 'Apple Color Emoji', 'Segoe UI Emoji', serif;
+      font-size: var(--size, 30px);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(255, 188, 208, .25);
+      opacity: .8;
+      animation: charm-float var(--duration, 7s) ease-in-out infinite alternate;
+      animation-delay: var(--delay, 0s);
+    }
+    .birthday-wish {
+      position: absolute;
+      top: 42%;
+      width: 24%;
+      text-align: center;
+      color: #fbd7bd;
+      font-size: clamp(15px, 2.9vw, 40px);
+      font-style: italic;
+      line-height: 1.4;
+      letter-spacing: .02em;
+      text-shadow: 0 0 28px rgba(249, 176, 173, .25);
+    }
+    .birthday-wish.left { left: 1%; transform: rotate(-8deg); }
+    .birthday-wish.right { right: 1%; transform: rotate(8deg); }
+    @keyframes charm-float {
+      from { transform: translate(-50%, -50%) translateY(-7px) rotate(-9deg); }
+      to { transform: translate(-50%, -50%) translateY(8px) rotate(9deg); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
@@ -642,7 +687,49 @@
   <main class="gallery" aria-label="A full-screen photo love letter">
     <section class="stage" id="stage" aria-live="polite">
       <figure class="hero-card" id="hero-card">
+        <div class="portrait-stage">
+          <div class="birthday-atmosphere" aria-hidden="true">
+            <span class="birthday-charm" style="--x:6%;--y:7%;--size:22px;--duration:5s;--delay:-0s;--charm-color:#f7b4cc">♡</span>
+            <span class="birthday-charm" style="--x:18%;--y:7%;--size:29px;--duration:6s;--delay:-1s;--charm-color:#fbe0a8">✦</span>
+            <span class="birthday-charm" style="--x:32%;--y:7%;--size:36px;--duration:7s;--delay:-2s;--charm-color:#e8badf">🎀</span>
+            <span class="birthday-charm" style="--x:68%;--y:7%;--size:23px;--duration:8s;--delay:-3s;--charm-color:#f7b4cc">✧</span>
+            <span class="birthday-charm" style="--x:82%;--y:7%;--size:30px;--duration:9s;--delay:-4s;--charm-color:#fbe0a8">♥</span>
+            <span class="birthday-charm" style="--x:94%;--y:7%;--size:37px;--duration:5s;--delay:-5s;--charm-color:#e8badf">🎈</span>
+            <span class="birthday-charm" style="--x:6%;--y:23%;--size:24px;--duration:6s;--delay:-6s;--charm-color:#f7b4cc">🎁</span>
+            <span class="birthday-charm" style="--x:18%;--y:23%;--size:31px;--duration:7s;--delay:-0s;--charm-color:#fbe0a8">✦</span>
+            <span class="birthday-charm" style="--x:32%;--y:23%;--size:38px;--duration:8s;--delay:-1s;--charm-color:#e8badf">♡</span>
+            <span class="birthday-charm" style="--x:68%;--y:23%;--size:25px;--duration:9s;--delay:-2s;--charm-color:#f7b4cc">🎂</span>
+            <span class="birthday-charm" style="--x:82%;--y:23%;--size:32px;--duration:5s;--delay:-3s;--charm-color:#fbe0a8">✧</span>
+            <span class="birthday-charm" style="--x:94%;--y:23%;--size:39px;--duration:6s;--delay:-4s;--charm-color:#e8badf">♥</span>
+            <span class="birthday-charm" style="--x:6%;--y:37%;--size:26px;--duration:7s;--delay:-5s;--charm-color:#f7b4cc">♡</span>
+            <span class="birthday-charm" style="--x:18%;--y:37%;--size:33px;--duration:8s;--delay:-6s;--charm-color:#fbe0a8">✦</span>
+            <span class="birthday-charm" style="--x:32%;--y:37%;--size:40px;--duration:9s;--delay:-0s;--charm-color:#e8badf">🎀</span>
+            <span class="birthday-charm" style="--x:68%;--y:37%;--size:27px;--duration:5s;--delay:-1s;--charm-color:#f7b4cc">✧</span>
+            <span class="birthday-charm" style="--x:82%;--y:37%;--size:34px;--duration:6s;--delay:-2s;--charm-color:#fbe0a8">♥</span>
+            <span class="birthday-charm" style="--x:94%;--y:37%;--size:41px;--duration:7s;--delay:-3s;--charm-color:#e8badf">🎈</span>
+            <span class="birthday-charm" style="--x:6%;--y:64%;--size:28px;--duration:8s;--delay:-4s;--charm-color:#f7b4cc">🎁</span>
+            <span class="birthday-charm" style="--x:18%;--y:64%;--size:35px;--duration:9s;--delay:-5s;--charm-color:#fbe0a8">✦</span>
+            <span class="birthday-charm" style="--x:32%;--y:64%;--size:22px;--duration:5s;--delay:-6s;--charm-color:#e8badf">♡</span>
+            <span class="birthday-charm" style="--x:68%;--y:64%;--size:29px;--duration:6s;--delay:-0s;--charm-color:#f7b4cc">🎂</span>
+            <span class="birthday-charm" style="--x:82%;--y:64%;--size:36px;--duration:7s;--delay:-1s;--charm-color:#fbe0a8">✧</span>
+            <span class="birthday-charm" style="--x:94%;--y:64%;--size:23px;--duration:8s;--delay:-2s;--charm-color:#e8badf">♥</span>
+            <span class="birthday-charm" style="--x:6%;--y:79%;--size:30px;--duration:9s;--delay:-3s;--charm-color:#f7b4cc">♡</span>
+            <span class="birthday-charm" style="--x:18%;--y:79%;--size:37px;--duration:5s;--delay:-4s;--charm-color:#fbe0a8">✦</span>
+            <span class="birthday-charm" style="--x:32%;--y:79%;--size:24px;--duration:6s;--delay:-5s;--charm-color:#e8badf">🎀</span>
+            <span class="birthday-charm" style="--x:68%;--y:79%;--size:31px;--duration:7s;--delay:-6s;--charm-color:#f7b4cc">✧</span>
+            <span class="birthday-charm" style="--x:82%;--y:79%;--size:38px;--duration:8s;--delay:-0s;--charm-color:#fbe0a8">♥</span>
+            <span class="birthday-charm" style="--x:94%;--y:79%;--size:25px;--duration:9s;--delay:-1s;--charm-color:#e8badf">🎈</span>
+            <span class="birthday-charm" style="--x:6%;--y:94%;--size:32px;--duration:5s;--delay:-2s;--charm-color:#f7b4cc">🎁</span>
+            <span class="birthday-charm" style="--x:18%;--y:94%;--size:39px;--duration:6s;--delay:-3s;--charm-color:#fbe0a8">✦</span>
+            <span class="birthday-charm" style="--x:32%;--y:94%;--size:26px;--duration:7s;--delay:-4s;--charm-color:#e8badf">♡</span>
+            <span class="birthday-charm" style="--x:68%;--y:94%;--size:33px;--duration:8s;--delay:-5s;--charm-color:#f7b4cc">🎂</span>
+            <span class="birthday-charm" style="--x:82%;--y:94%;--size:40px;--duration:9s;--delay:-6s;--charm-color:#fbe0a8">✧</span>
+            <span class="birthday-charm" style="--x:94%;--y:94%;--size:27px;--duration:5s;--delay:-0s;--charm-color:#e8badf">♥</span>
+            <span class="birthday-wish left">Happy<br>Birthday ♡</span>
+            <span class="birthday-wish right">Make a<br>wish ✨</span>
+          </div>
         <img id="hero-image" src="assets/02.jpg" alt="Birthday girl holding a bouquet and smiling">
+        </div>
         <figcaption class="hero-meta"><strong id="hero-title">I will choose you, in every lifetime.</strong></figcaption>
       </figure>
       <section class="celebration" id="celebration" aria-label="Birthday celebration">
@@ -710,7 +797,7 @@
         if (!musicContext) {
           musicContext = new AudioEngine();
           musicGain = musicContext.createGain();
-          musicGain.gain.value = .16;
+          musicGain.gain.value = .38; // About +7.5 dB above the previous background level.
           musicGain.connect(musicContext.destination);
           let barIndex = 0;
           const tone = (midi, at, duration, level) => {
@@ -750,6 +837,17 @@
     document.addEventListener('touchend', startMusic, { passive: true });
     document.addEventListener('keydown', startMusic);
 
+    function chooseNarrationVoice(voices) {
+      // Prefer enhanced voices over legacy robotic desktop voices, where available.
+      const score = voice =>
+        (/natural|neural|premium|enhanced/i.test(voice.name) ? 100 : 0) +
+        (/google|online/i.test(voice.name) ? 40 : 0) +
+        (/daniel|alex|samantha|ava|guy/i.test(voice.name) ? 15 : 0) +
+        (voice.default ? 5 : 0);
+      return voices.filter(voice => /^en(?:-|$)/i.test(voice.lang))
+        .sort((a, b) => score(b) - score(a))[0];
+    }
+
     function speakText(text, onComplete) {
       const readingTime = Math.max(4200, text.split(/\s+/).length * 400);
       if (!soundEnabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
@@ -780,13 +878,14 @@
         synth.cancel();
         announcement = new SpeechSynthesisUtterance(text);
         announcement.lang = 'en-US';
-        announcement.rate = .78;
-        announcement.pitch = 1.06;
+        announcement.rate = .96;
+        announcement.pitch = 1;
         announcement.volume = 1;
-        const preferredVoice = synth.getVoices().find((voice) =>
-          /david|google.*male|daniel|alex|mark|guy|fred|tom|george/i.test(voice.name) && voice.lang.startsWith('en')
-        );
-        if (preferredVoice) announcement.voice = preferredVoice;
+        const preferredVoice = chooseNarrationVoice(synth.getVoices());
+        if (preferredVoice) {
+          announcement.voice = preferredVoice;
+          announcement.lang = preferredVoice.lang;
+        }
         announcement.onend = finish;
         announcement.onerror = finish;
         synth.speak(announcement);

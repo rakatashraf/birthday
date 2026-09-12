@@ -26,3 +26,10 @@ Music and narration attempt to start on page load. No sound button is shown. Bro
 The ambient soundtrack is an original eight-bar sequence synthesized locally with sine oscillators, soft envelopes, and quiet sustained chords. It includes no third-party recordings, samples, or downloaded tracks. Its code is included under the repository's existing MIT license. The existing WAV asset is retained for compatibility but is not played by this version.
 
 The automated checks cover all asset references, the three Vercel output roots, synchronized HTML copies, and speech completion/error/timeout handling, including the full slideshow and celebration loop.
+
+
+## Birthday atmosphere and narration
+
+The image sits above an animated decorative layer of hearts, ribbons, balloons, cakes, gifts, and sparkles. Only the unused space around the opaque photo reveals the decorations. Captions remain in a separate row, and reduced-motion preferences disable the floating animation.
+
+The music master gain is 0.38, increased from 0.16 (about +7.5 dB). Narration uses normal pitch and near-normal speed, preferring installed natural/enhanced or online English voices when available. Browser speech quality still varies by device. A genuinely human recording or generated neural voiceover must replace browser synthesis for consistent natural narration; voice cloning has not been configured.
