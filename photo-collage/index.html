@@ -594,12 +594,32 @@
       .birthday-person { width: min(520px, 96vw); height: 100%; }
     }
 
+    /* Keep the full-screen composition inside mobile browser chrome. */
+    .gallery, .stage { min-height: 100svh; }
+    .stage { height: 100svh; }
+    .sound-button {
+      position: fixed;
+      z-index: 12;
+      top: max(16px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, .5);
+      border-radius: 999px;
+      background: rgba(36, 23, 27, .85);
+      color: #fffdf9;
+      font: 14px Arial, sans-serif;
+      cursor: pointer;
+    }
+    .sound-button:focus-visible { outline: 3px solid #fffdf9; outline-offset: 3px; }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
+  <button id="sound-button" class="sound-button" type="button" aria-pressed="false">Enable sound</button>
   <main class="gallery" aria-label="A full-screen photo love letter">
     <section class="stage" id="stage" aria-live="polite">
       <figure class="hero-card" id="hero-card">
@@ -639,6 +659,9 @@
     let spokenSlide = -1;
     let spokenCelebration = new Set();
 
+    const soundButton = document.getElementById('sound-button');
+    let soundEnabled = false;
+    let activeSpeech = null;
     let musicContext;
     let musicGain;
     let musicTimer;
@@ -678,28 +701,64 @@
         playChord();
         musicTimer = window.setInterval(playChord, 6000);
       }
-      if (musicContext.state === 'suspended') musicContext.resume();
+      if (musicContext.state === 'suspended') musicContext.resume().catch(() => {});
     }
-    startMusic();
-    document.addEventListener('pointerdown', startMusic, { once: true });
+    soundButton.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundButton.textContent = soundEnabled ? 'Mute sound' : 'Enable sound';
+      soundButton.setAttribute('aria-pressed', String(soundEnabled));
+      if (soundEnabled) {
+        // Audio is only requested from this user gesture, never during page load.
+        try { startMusic(); } catch { /* Visual playback must remain available. */ }
+      } else {
+        if (musicContext) musicContext.suspend().catch(() => {});
+        if (activeSpeech) activeSpeech();
+      }
+    });
 
     function speakText(text, onComplete) {
-      if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
-        window.setTimeout(onComplete, 4200);
+      const readingTime = Math.max(4200, text.split(/\s+/).length * 400);
+      if (!soundEnabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+        window.setTimeout(onComplete, readingTime);
         return;
       }
-      window.speechSynthesis.cancel();
-      const announcement = new SpeechSynthesisUtterance(text);
-      announcement.lang = 'en-US';
-      announcement.rate = .78;
-      announcement.pitch = 1.06;
-      announcement.volume = 1;
-      const preferredVoice = window.speechSynthesis.getVoices().find((voice) =>
-        /david|google.*male|daniel|alex|mark|guy|fred|tom|george/i.test(voice.name) && voice.lang.startsWith('en')
-      );
-      if (preferredVoice) announcement.voice = preferredVoice;
-      announcement.onend = () => window.setTimeout(onComplete, 650);
-      window.speechSynthesis.speak(announcement);
+      if (activeSpeech) activeSpeech();
+      const synth = window.speechSynthesis;
+      let completed = false;
+      let announcement;
+      // Some browsers reject speech without firing onend. Always advance once.
+      const startedAt = Date.now();
+      const finish = () => {
+        if (completed) return;
+        completed = true;
+        window.clearTimeout(watchdog);
+        if (announcement) {
+          announcement.onend = null;
+          announcement.onerror = null;
+        }
+        activeSpeech = null;
+        try { synth.cancel(); } catch { /* Unsupported speech must not stop the show. */ }
+        window.setTimeout(onComplete, Math.max(650, readingTime - (Date.now() - startedAt)));
+      };
+      const watchdog = window.setTimeout(finish, Math.max(12000, readingTime * 2));
+      activeSpeech = finish;
+      try {
+        synth.cancel();
+        announcement = new SpeechSynthesisUtterance(text);
+        announcement.lang = 'en-US';
+        announcement.rate = .78;
+        announcement.pitch = 1.06;
+        announcement.volume = 1;
+        const preferredVoice = synth.getVoices().find((voice) =>
+          /david|google.*male|daniel|alex|mark|guy|fred|tom|george/i.test(voice.name) && voice.lang.startsWith('en')
+        );
+        if (preferredVoice) announcement.voice = preferredVoice;
+        announcement.onend = finish;
+        announcement.onerror = finish;
+        synth.speak(announcement);
+      } catch {
+        finish();
+      }
     }
 
     function speakSlide(index, onComplete) {
@@ -718,7 +777,7 @@
       { src: 'assets/04.jpg', alt: 'Birthday girl smiling in a bright blue scarf', quote: 'With you, I will keep finding new reasons to call life beautiful.' },
       { src: 'assets/05.jpg', alt: 'Birthday girl smiling at a warm restaurant table', quote: 'I will keep making room for your dreams, your laughter, and your cake.' },
       { src: 'assets/06.jpg', alt: 'Birthday girl smiling in a garden', quote: 'Wherever life takes us, my hand will always be reaching for yours.' },
-      { src: 'assets/07.jpg', alt: 'Birthday girl smiling beside a brick archway', quote: 'I promise to grow with you, and never stop falling for you.' },
+      { src: 'assets/07.jpg', alt: 'Birthday girl holding flowers beside a window', quote: 'I promise to grow with you, and never stop falling for you.' },
       { src: 'assets/08.jpg', alt: 'Birthday girl smiling beside flowering bushes at night', quote: 'On ordinary nights and unforgettable days, I will be yours.' },
       { src: 'assets/09.jpg', alt: 'Birthday girl smiling surrounded by greenery', quote: 'I will celebrate you loudly, love you gently, and stay for all of it.' },
       { src: 'assets/10.jpg', alt: 'Birthday girl smiling beside an old brick structure', quote: 'Today, tomorrow, and every birthday after this one: always us.' }
@@ -751,6 +810,8 @@
 
     function enterCelebration() {
       window.clearTimeout(slideshowTimer);
+      window.clearTimeout(celebrationTimer);
+      spokenCelebration.clear();
       if (!spokenCelebration.has('title')) {
         spokenCelebration.add('title');
         speakText('Happy Birthday', () => {});
