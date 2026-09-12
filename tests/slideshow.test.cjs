@@ -7,10 +7,12 @@ const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'photo-collage/index.html'), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
-function runShow(speechMode) {
+function runShow(speechMode, audioMode) {
   let now = 0, nextId = 0;
   const jobs = new Map(), nodes = new Map();
   const history = [], speechCalls = [];
+  const documentListeners = new Map();
+  const audio = { instances: 0, resumes: 0, notes: 0, loops: 0, activated: false };
   const node = id => {
     if (!nodes.has(id)) {
       const classes = new Set();
@@ -28,9 +30,32 @@ function runShow(speechMode) {
   };
   const window = {
     setTimeout(fn, delay) { const id = ++nextId; jobs.set(id, { at: now + delay, fn }); return id; },
-    clearTimeout(id) { jobs.delete(id); }
+    clearTimeout(id) { jobs.delete(id); },
+    setInterval(fn, delay) {
+      audio.loops++;
+      const id = ++nextId;
+      jobs.set(id, { at: now + delay, fn, interval: delay });
+      return id;
+    }
+
   };
-  const context = { window, document: { getElementById: node, querySelector: node },
+  if (audioMode) {
+    window.AudioContext = class {
+      constructor() { audio.instances++; this.state = audioMode === 'allowed' ? 'running' : 'suspended'; this.currentTime = 0; }
+      addEventListener(type, listener) { this.listener = listener; }
+      resume() {
+        audio.resumes++;
+        if (!audio.activated) return Promise.reject(new Error('NotAllowedError'));
+        this.state = 'running'; this.listener(); return Promise.resolve();
+      }
+      createGain() { return { gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {}, disconnect() {} }; }
+      createOscillator() { return { frequency: {}, connect() {}, disconnect() {}, start() { audio.notes++; }, stop() {} }; }
+    };
+  }
+  const context = { window, document: {
+    getElementById: node, querySelector: node,
+    addEventListener(type, callback) { documentListeners.set(type, callback); }
+  },
     Date: class extends Date { static now() { return now; } } };
   if (speechMode) {
     context.SpeechSynthesisUtterance = window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
@@ -59,10 +84,13 @@ function runShow(speechMode) {
       if (!pending || pending[1].at > end) break;
       assert.ok(++steps < 2000, 'timer loop must be bounded');
       now = pending[1].at; jobs.delete(pending[0]); pending[1].fn();
+      if (pending[1].interval) jobs.set(pending[0], { ...pending[1], at: now + pending[1].interval });
     }
     now = end;
   }
-  return { node, advance, history, speechCalls };
+  return { node, advance, history, speechCalls, audio,
+    gesture(type) { audio.activated = true; documentListeners.get(type)(); }
+  };
 }
 
 test('every Vercel root publishes an index and all its referenced assets', () => {
@@ -83,8 +111,8 @@ test('the legacy nested entry is synchronized', () => {
   assert.equal(html, fs.readFileSync(path.join(root, 'photo-collage/photo-collage/index.html'), 'utf8'));
 });
 
-test('silent autoplay advances without requesting audio and completes the celebration loop', () => {
-  const show = runShow('hang');
+test('slideshow completes without audio APIs', () => {
+  const show = runShow();
   show.advance(180000);
   assert.equal(show.speechCalls.length, 0);
   assert.ok(show.history.some(classes => classes.includes('celebration-mode')));
@@ -96,14 +124,38 @@ test('silent autoplay advances without requesting audio and completes the celebr
 for (const mode of [undefined, 'end', 'error', 'throw', 'hang', 'both']) {
   test(`slideshow stays live with speech mode: ${mode || 'unsupported'}`, () => {
     const show = runShow(mode);
-    show.node('sound-button').listeners.click();
-    assert.equal(show.node('sound-button')['aria-pressed'], 'true');
     show.advance(300000);
     assert.ok(show.history.some(classes => classes.includes('person-visible')));
     assert.ok(show.history.some(classes => classes.length === 0));
     // Duplicate end/error callbacks must not launch parallel slideshow loops.
     if (mode === 'both') assert.ok(show.speechCalls.length < 65);
-    show.node('sound-button').listeners.click();
-    assert.equal(show.node('sound-button')['aria-pressed'], 'false');
+  });
+}
+
+
+test('music starts on load when browser autoplay is allowed and never duplicates the loop', () => {
+  const show = runShow(undefined, 'allowed');
+  assert.equal(show.audio.notes, 7);
+  assert.equal(show.audio.loops, 1);
+  show.gesture('click'); show.gesture('touchend'); show.gesture('keydown');
+  assert.equal(show.audio.instances, 1);
+  assert.equal(show.audio.loops, 1);
+  show.advance(6500);
+  assert.equal(show.audio.notes, 14);
+});
+
+for (const gesture of ['click', 'touchend', 'keydown']) {
+  test(`blocked music starts from ${gesture} without a sound button`, async () => {
+    const show = runShow(undefined, 'blocked');
+    await Promise.resolve();
+    assert.equal(show.audio.resumes, 1, 'attempt autoplay on load');
+    assert.equal(show.audio.notes, 0, 'respect browser autoplay restrictions');
+    show.advance(10000);
+    assert.ok(show.node('hero-image').src, 'visuals continue while audio is blocked');
+    show.gesture(gesture);
+    await Promise.resolve();
+    assert.equal(show.audio.notes, 7);
+    assert.equal(show.audio.loops, 1);
+    assert.ok(!html.includes('id="sound-button"'));
   });
 }

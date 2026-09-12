@@ -597,21 +597,41 @@
     /* Keep the full-screen composition inside mobile browser chrome. */
     .gallery, .stage { min-height: 100svh; }
     .stage { height: 100svh; }
-    .sound-button {
-      position: fixed;
-      z-index: 12;
-      top: max(16px, env(safe-area-inset-top));
-      right: max(16px, env(safe-area-inset-right));
-      min-height: 44px;
-      padding: 10px 16px;
-      border: 1px solid rgba(255, 255, 255, .5);
-      border-radius: 999px;
-      background: rgba(36, 23, 27, .85);
-      color: #fffdf9;
-      font: 14px Arial, sans-serif;
-      cursor: pointer;
+    /* Show every edge of each original image; captions get their own row. */
+    .stage { height: 100dvh; min-height: 100dvh; }
+    .gallery { min-height: 100dvh; }
+    .hero-card {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      background: radial-gradient(ellipse at center, #342329, #171115);
     }
-    .sound-button:focus-visible { outline: 3px solid #fffdf9; outline-offset: 3px; }
+    .hero-card img {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      object-fit: contain;
+      object-position: center;
+    }
+    .hero-card:hover img { transform: none; }
+    .hero-card::before, .hero-card::after { display: none; }
+    .hero-meta {
+      position: static;
+      margin: 0;
+      padding: 12px max(20px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom));
+    }
+    .hero-meta strong { font-size: clamp(18px, 2.5vw, 30px); line-height: 1.3; }
+    .collage-wall {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      transform: none;
+    }
+    .collage-wall img {
+      min-width: 0;
+      min-height: 0;
+      object-fit: contain;
+      background: #20171e;
+    }
+    .collage-wall img:nth-child(n) { transform: none; }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
@@ -619,7 +639,6 @@
   </style>
 </head>
 <body>
-  <button id="sound-button" class="sound-button" type="button" aria-pressed="false">Enable sound</button>
   <main class="gallery" aria-label="A full-screen photo love letter">
     <section class="stage" id="stage" aria-live="polite">
       <figure class="hero-card" id="hero-card">
@@ -659,62 +678,77 @@
     let spokenSlide = -1;
     let spokenCelebration = new Set();
 
-    const soundButton = document.getElementById('sound-button');
-    let soundEnabled = false;
+    const soundEnabled = true;
     let activeSpeech = null;
     let musicContext;
     let musicGain;
-    let musicTimer;
-    const chordNotes = [
-      [261.63, 329.63, 392.00],
-      [293.66, 349.23, 440.00],
-      [261.63, 329.63, 392.00],
-      [246.94, 311.13, 369.99]
+    let musicTimer = null;
+    let playBar;
+    // Original ambient score: generated sine tones, with no samples or recordings.
+    const ambientScore = [
+      { chord: [48, 55, 64], melody: [72, 76, 79, 76] },
+      { chord: [45, 52, 60], melody: [76, 72, 71, 69] },
+      { chord: [53, 60, 69], melody: [69, 72, 76, 72] },
+      { chord: [55, 62, 69], melody: [71, 74, 69, 67] },
+      { chord: [48, 55, 64], melody: [76, 79, 74, 72] },
+      { chord: [45, 52, 60], melody: [72, 69, 76, 72] },
+      { chord: [53, 60, 69], melody: [77, 76, 72, 69] },
+      { chord: [55, 62, 71], melody: [74, 71, 67, 72] }
     ];
 
-    function startMusic() {
-      if (!window.AudioContext && !window.webkitAudioContext) return;
-      if (!musicContext) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        musicContext = new AudioContext();
-        musicGain = musicContext.createGain();
-        musicGain.gain.value = .045;
-        musicGain.connect(musicContext.destination);
-        let chordIndex = 0;
-        const playChord = () => {
-          const now = musicContext.currentTime;
-          chordNotes[chordIndex].forEach((frequency, noteIndex) => {
-            const oscillator = musicContext.createOscillator();
-            const noteGain = musicContext.createGain();
-            oscillator.type = noteIndex === 1 ? 'sine' : 'triangle';
-            oscillator.frequency.value = frequency / 2;
-            noteGain.gain.setValueAtTime(0, now);
-            noteGain.gain.linearRampToValueAtTime(.22, now + 1.3);
-            noteGain.gain.linearRampToValueAtTime(0, now + 6.2);
-            oscillator.connect(noteGain);
-            noteGain.connect(musicGain);
-            oscillator.start(now);
-            oscillator.stop(now + 6.3);
-          });
-          chordIndex = (chordIndex + 1) % chordNotes.length;
-        };
-        playChord();
-        musicTimer = window.setInterval(playChord, 6000);
-      }
-      if (musicContext.state === 'suspended') musicContext.resume().catch(() => {});
+    function beginMusic() {
+      // Suspended contexts must not accumulate scheduled notes or duplicate loops.
+      if (!musicContext || musicContext.state !== 'running' || musicTimer !== null) return;
+      playBar();
+      musicTimer = window.setInterval(playBar, 6400);
     }
-    soundButton.addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      soundButton.textContent = soundEnabled ? 'Mute sound' : 'Enable sound';
-      soundButton.setAttribute('aria-pressed', String(soundEnabled));
-      if (soundEnabled) {
-        // Audio is only requested from this user gesture, never during page load.
-        try { startMusic(); } catch { /* Visual playback must remain available. */ }
-      } else {
-        if (musicContext) musicContext.suspend().catch(() => {});
-        if (activeSpeech) activeSpeech();
-      }
-    });
+
+    function startMusic() {
+      try {
+        const AudioEngine = window.AudioContext || window.webkitAudioContext;
+        if (!AudioEngine) return;
+        if (!musicContext) {
+          musicContext = new AudioEngine();
+          musicGain = musicContext.createGain();
+          musicGain.gain.value = .16;
+          musicGain.connect(musicContext.destination);
+          let barIndex = 0;
+          const tone = (midi, at, duration, level) => {
+            const oscillator = musicContext.createOscillator();
+            const envelope = musicContext.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+            envelope.gain.setValueAtTime(0, at);
+            envelope.gain.linearRampToValueAtTime(level, at + .3);
+            envelope.gain.exponentialRampToValueAtTime(.001, at + duration - .15);
+            envelope.gain.linearRampToValueAtTime(0, at + duration);
+            oscillator.connect(envelope);
+            envelope.connect(musicGain);
+            oscillator.onended = () => { oscillator.disconnect(); envelope.disconnect(); };
+            oscillator.start(at);
+            oscillator.stop(at + duration);
+          };
+          playBar = () => {
+            if (musicContext.state !== 'running') return;
+            const score = ambientScore[barIndex];
+            const at = musicContext.currentTime + .05;
+            score.chord.forEach(note => tone(note, at, 6.7, .035));
+            score.melody.forEach((note, i) => tone(note, at + i * 1.6, 2.8, .09));
+            barIndex = (barIndex + 1) % ambientScore.length;
+          };
+          musicContext.addEventListener('statechange', beginMusic);
+        }
+        if (musicContext.state === 'running') beginMusic();
+        else musicContext.resume().then(beginMusic).catch(() => {});
+      } catch { /* A browser audio restriction never interrupts the visuals. */ }
+    }
+
+    // Request playback immediately. Only the browser can grant autoplay permission.
+    // If it blocks playback, retry from a real tap/click or keyboard interaction.
+    startMusic();
+    document.addEventListener('click', startMusic);
+    document.addEventListener('touchend', startMusic, { passive: true });
+    document.addEventListener('keydown', startMusic);
 
     function speakText(text, onComplete) {
       const readingTime = Math.max(4200, text.split(/\s+/).length * 400);
