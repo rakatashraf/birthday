@@ -22,7 +22,7 @@ The uploaded track is served as `photo-collage/assets/background-music.mp3`, con
 The automated checks cover the canonical Vercel output, all asset references, the uploaded audio file, autoplay retry behavior, and the full slideshow and celebration loop.
 
 
-## Birthday atmosphere and narration
+## Birthday atmosphere
 
 The image sits above an animated decorative layer of hearts, ribbons, balloons, cakes, gifts, and sparkles. Only the unused space around the opaque photo reveals the decorations. Captions remain in a separate row, and reduced-motion preferences disable the floating animation.
 
