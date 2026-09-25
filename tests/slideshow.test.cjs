@@ -96,12 +96,14 @@ function runShow(audioMode) {
 }
 
 test('the repository has one canonical static app and all referenced assets', () => {
-  const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json')));
-  assert.equal(config.framework, null);
-  assert.equal(config.buildCommand, '');
-  assert.equal(config.installCommand, '');
-  assert.equal(config.outputDirectory, 'photo-collage');
   assert.ok(fs.statSync(path.join(appRoot, 'index.html')).isFile());
+  const workflow = fs.readFileSync(path.join(root, '.github/workflows/deploy-pages.yml'), 'utf8');
+  assert.match(workflow, /branches:\s*\[main\]/);
+  assert.match(workflow, /actions\/upload-pages-artifact@v3/);
+  assert.match(workflow, /path:\s*\.\/photo-collage/);
+  assert.match(workflow, /actions\/deploy-pages@v4/);
+  assert.equal(fs.existsSync(path.join(root, 'vercel.json')), false);
+  assert.equal(fs.existsSync(path.join(appRoot, 'vercel.json')), false);
 
   const assets = [...new Set(html.match(/assets\/[\w.-]+/g))];
   for (const asset of assets) {
