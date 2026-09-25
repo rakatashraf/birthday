@@ -917,6 +917,7 @@
 
     // Try autoplay immediately, then retry after a real visitor gesture if the
     // browser blocks unmuted playback. There is intentionally no sound button.
+    backgroundMusic.addEventListener('canplay', startMusic, { once: true });
     startMusic();
     document.addEventListener('click', startMusic);
     document.addEventListener('touchend', startMusic, { passive: true });

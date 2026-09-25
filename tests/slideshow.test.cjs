@@ -116,6 +116,7 @@ test('the repository has one canonical static app and all referenced assets', ()
 
 test('the uploaded MP3 is the only configured background audio', () => {
   assert.match(html, /<audio id="background-music" src="assets\/background-music\.mp3" preload="auto" autoplay loop playsinline/);
+  assert.match(html, /addEventListener\('canplay', startMusic, \{ once: true \}\)/);
   assert.doesNotMatch(html, /<audio[^>]*\bmuted\b/);
   assert.doesNotMatch(html, /AudioContext|webkitAudioContext|speechSynthesis|SpeechSynthesisUtterance|ambientScore|soft-birthday-music|sound-button/);
 });
